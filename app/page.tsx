@@ -8,13 +8,25 @@ interface Todo {
 }
 
 export default function Home(): JSX.Element {
-  const [todos, setTodos] = useState<Todo[]>(
-    localStorage.getItem("dataTodos")
-      ? JSON.parse(localStorage.getItem("dataTodos")!)
-      : []
-  );
-
+  const [todos, setTodos] = useState<Todo[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load todos from localStorage only on the client side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedTodos = localStorage.getItem("dataTodos");
+      if (storedTodos) {
+        setTodos(JSON.parse(storedTodos));
+      }
+    }
+  }, []);
+
+  // Save todos to localStorage on todos change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dataTodos", JSON.stringify(todos));
+    }
+  }, [todos]);
 
   const addTodo = (): void => {
     if (!inputRef.current) return;
@@ -49,10 +61,6 @@ export default function Home(): JSX.Element {
       });
     });
   };
-
-  useEffect(() => {
-    localStorage.setItem("dataTodos", JSON.stringify(todos));
-  }, [todos]);
 
   return (
     <div className="flex justify-center h-screen items-center text-center font-mono">
